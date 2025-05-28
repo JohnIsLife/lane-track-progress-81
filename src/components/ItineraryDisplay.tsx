@@ -1,4 +1,3 @@
-
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +9,6 @@ import ItineraryItemCard from "./ItineraryItemCard";
 import AddEditActivityDialog from "./AddEditActivityDialog";
 import ThemeToggle from "./ThemeToggle";
 import { useToast } from "@/hooks/use-toast";
-import { generateItineraryPDF } from "@/utils/pdfGenerator";
 
 interface ItineraryDisplayProps {
   tripData: TripData;
@@ -70,20 +68,8 @@ const ItineraryDisplay = ({
     });
   };
 
-  const downloadPDF = async () => {
-    try {
-      await generateItineraryPDF(tripData, itinerary);
-      toast({
-        title: "PDF downloaded",
-        description: "Your itinerary has been downloaded as a PDF",
-      });
-    } catch (error) {
-      toast({
-        title: "Download failed",
-        description: "There was an error generating the PDF",
-        variant: "destructive",
-      });
-    }
+  const downloadPDF = () => {
+    // Do nothing
   };
 
   const onDragEnd = (result: DropResult) => {
