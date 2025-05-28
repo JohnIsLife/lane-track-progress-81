@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, DollarSign, Download, Trash2, Plane, Bed, Utensils, Car, MapPin } from "lucide-react";
 import { DragDropContext, Droppable, DropResult } from "@hello-pangea/dnd";
@@ -268,135 +269,145 @@ const ItineraryDisplay = ({
         </Card>
       </div>
 
-      {/* Table View */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Itinerary Details</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Time</TableHead>
-                  <TableHead>Activity</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead>Cost ({tripData.currency})</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead className="w-[100px]">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {dayColumns.map((dayColumn) => (
-                  <>
-                    {/* Day Header */}
-                    <TableRow key={`day-${dayColumn.day}`} className="bg-blue-50 dark:bg-blue-900/20 border-b-2 border-blue-200 dark:border-blue-800">
-                      <TableCell colSpan={6} className="py-4">
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-lg font-bold text-blue-900 dark:text-blue-100">
-                            Day {dayColumn.day}
-                          </h3>
-                          <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-800 dark:text-blue-200">
-                            {dayColumn.items.length} activities
-                          </Badge>
-                        </div>
-                      </TableCell>
+      <Tabs defaultValue="table" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="table">Table View</TabsTrigger>
+          <TabsTrigger value="kanban">Kanban Board</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="table" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Itinerary Details</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Time</TableHead>
+                      <TableHead>Activity</TableHead>
+                      <TableHead>Location</TableHead>
+                      <TableHead>Cost ({tripData.currency})</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead className="w-[100px]">Actions</TableHead>
                     </TableRow>
-                    
-                    {/* Day Activities */}
-                    {dayColumn.items.length === 0 ? (
-                      <TableRow key={`day-${dayColumn.day}-empty`}>
-                        <TableCell colSpan={6} className="py-6 text-center text-gray-500 dark:text-gray-400 italic">
-                          No activities planned for this day
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      dayColumn.items
-                        .sort((a, b) => a.time.localeCompare(b.time))
-                        .map((item, index) => (
-                          <TableRow 
-                            key={item.id} 
-                            className={`${index === dayColumn.items.length - 1 ? 'border-b-4 border-gray-200 dark:border-gray-700' : ''}`}
-                          >
-                            <TableCell className="font-medium">{item.time}</TableCell>
-                            <TableCell>{item.activity}</TableCell>
-                            <TableCell>{item.location}</TableCell>
-                            <TableCell>
-                              {item.estimatedCost > 0 ? `${tripData.currency} ${item.estimatedCost}` : 'Free'}
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant="outline" className={getTypeColor(item.type)}>
-                                {getTypeIcon(item.type)}
-                                <span className="ml-1 capitalize">{item.type}</span>
+                  </TableHeader>
+                  <TableBody>
+                    {dayColumns.map((dayColumn) => (
+                      <>
+                        {/* Day Header */}
+                        <TableRow key={`day-${dayColumn.day}`} className="bg-blue-50 dark:bg-blue-900/20 border-b-2 border-blue-200 dark:border-blue-800">
+                          <TableCell colSpan={6} className="py-4">
+                            <div className="flex items-center gap-2">
+                              <h3 className="text-lg font-bold text-blue-900 dark:text-blue-100">
+                                Day {dayColumn.day}
+                              </h3>
+                              <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-800 dark:text-blue-200">
+                                {dayColumn.items.length} activities
                               </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => removeActivity(item.id)}
-                                className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                        
+                        {/* Day Activities */}
+                        {dayColumn.items.length === 0 ? (
+                          <TableRow key={`day-${dayColumn.day}-empty`}>
+                            <TableCell colSpan={6} className="py-6 text-center text-gray-500 dark:text-gray-400 italic">
+                              No activities planned for this day
                             </TableCell>
                           </TableRow>
-                        ))
-                    )}
-                  </>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-
-      <DragDropContext onDragEnd={onDragEnd}>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {dayColumns.map((column) => (
-            <div key={column.day} className="bg-white dark:bg-gray-800 rounded-lg shadow-md border-t-4 border-t-blue-400 bg-blue-50 dark:bg-blue-900/20 min-h-[400px] flex flex-col">
-              <div className="p-4 border-b border-gray-100 dark:border-gray-700">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-gray-800 dark:text-gray-200 text-lg">Day {column.day}</h3>
-                  <Badge variant="outline" className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
-                    {column.items.length}
-                  </Badge>
-                </div>
-              </div>
-
-              <Droppable droppableId={column.day.toString()}>
-                {(provided, snapshot) => (
-                  <div
-                    ref={provided.innerRef}
-                    {...provided.droppableProps}
-                    className={`flex-1 p-4 space-y-3 transition-colors ${
-                      snapshot.isDraggingOver ? "bg-gray-50 dark:bg-gray-700" : ""
-                    }`}
-                  >
-                    {column.items.map((item, index) => (
-                      <ItineraryItemCard
-                        key={item.id}
-                        item={item}
-                        index={index}
-                        currency={tripData.currency}
-                        onUpdateItem={addOrUpdateActivity}
-                        onRemoveItem={removeActivity}
-                      />
+                        ) : (
+                          dayColumn.items
+                            .sort((a, b) => a.time.localeCompare(b.time))
+                            .map((item, index) => (
+                              <TableRow 
+                                key={item.id} 
+                                className={`${index === dayColumn.items.length - 1 ? 'border-b-4 border-gray-200 dark:border-gray-700' : ''}`}
+                              >
+                                <TableCell className="font-medium">{item.time}</TableCell>
+                                <TableCell>{item.activity}</TableCell>
+                                <TableCell>{item.location}</TableCell>
+                                <TableCell>
+                                  {item.estimatedCost > 0 ? `${tripData.currency} ${item.estimatedCost}` : 'Free'}
+                                </TableCell>
+                                <TableCell>
+                                  <Badge variant="outline" className={getTypeColor(item.type)}>
+                                    {getTypeIcon(item.type)}
+                                    <span className="ml-1 capitalize">{item.type}</span>
+                                  </Badge>
+                                </TableCell>
+                                <TableCell>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => removeActivity(item.id)}
+                                    className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            ))
+                        )}
+                      </>
                     ))}
-                    {provided.placeholder}
-                    
-                    <AddEditActivityDialog
-                      day={column.day}
-                      currency={tripData.currency}
-                      onSave={addOrUpdateActivity}
-                    />
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="kanban" className="space-y-4">
+          <DragDropContext onDragEnd={onDragEnd}>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {dayColumns.map((column) => (
+                <div key={column.day} className="bg-white dark:bg-gray-800 rounded-lg shadow-md border-t-4 border-t-blue-400 bg-blue-50 dark:bg-blue-900/20 min-h-[400px] flex flex-col">
+                  <div className="p-4 border-b border-gray-100 dark:border-gray-700">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-semibold text-gray-800 dark:text-gray-200 text-lg">Day {column.day}</h3>
+                      <Badge variant="outline" className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                        {column.items.length}
+                      </Badge>
+                    </div>
                   </div>
-                )}
-              </Droppable>
+
+                  <Droppable droppableId={column.day.toString()}>
+                    {(provided, snapshot) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.droppableProps}
+                        className={`flex-1 p-4 space-y-3 transition-colors ${
+                          snapshot.isDraggingOver ? "bg-gray-50 dark:bg-gray-700" : ""
+                        }`}
+                      >
+                        {column.items.map((item, index) => (
+                          <ItineraryItemCard
+                            key={item.id}
+                            item={item}
+                            index={index}
+                            currency={tripData.currency}
+                            onUpdateItem={addOrUpdateActivity}
+                            onRemoveItem={removeActivity}
+                          />
+                        ))}
+                        {provided.placeholder}
+                        
+                        <AddEditActivityDialog
+                          day={column.day}
+                          currency={tripData.currency}
+                          onSave={addOrUpdateActivity}
+                        />
+                      </div>
+                    )}
+                  </Droppable>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </DragDropContext>
+          </DragDropContext>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
