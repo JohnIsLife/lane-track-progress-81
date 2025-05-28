@@ -1,17 +1,18 @@
-
 import { Draggable } from "@hello-pangea/dnd";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock, MapPin, Plane, Bed, Utensils, Car } from "lucide-react";
 import { ItineraryItem } from "./ItineraryPlanner";
+import AddEditActivityDialog from "./AddEditActivityDialog";
 
 interface ItineraryItemCardProps {
   item: ItineraryItem;
   index: number;
   currency: string;
+  onUpdateItem: (item: ItineraryItem) => void;
 }
 
-const ItineraryItemCard = ({ item, index, currency }: ItineraryItemCardProps) => {
+const ItineraryItemCard = ({ item, index, currency, onUpdateItem }: ItineraryItemCardProps) => {
   const getTypeIcon = (type: string) => {
     switch (type) {
       case "flight":
@@ -75,10 +76,18 @@ const ItineraryItemCard = ({ item, index, currency }: ItineraryItemCardProps) =>
                 <span className="truncate">{item.location}</span>
               </div>
               
-              <div className="text-right">
+              <div className="flex justify-between items-center">
                 <span className="text-sm font-medium">
                   {item.estimatedCost > 0 ? `${currency} ${item.estimatedCost}` : 'Free'}
                 </span>
+                
+                <AddEditActivityDialog
+                  day={item.day}
+                  item={item}
+                  currency={currency}
+                  onSave={onUpdateItem}
+                  isEdit={true}
+                />
               </div>
             </div>
           </CardContent>

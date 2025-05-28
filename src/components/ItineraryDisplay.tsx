@@ -1,4 +1,3 @@
-
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +6,7 @@ import { ArrowLeft, DollarSign } from "lucide-react";
 import { DragDropContext, Droppable, DropResult } from "@hello-pangea/dnd";
 import { TripData, ItineraryItem } from "./ItineraryPlanner";
 import ItineraryItemCard from "./ItineraryItemCard";
+import AddEditActivityDialog from "./AddEditActivityDialog";
 import { useToast } from "@/hooks/use-toast";
 
 interface ItineraryDisplayProps {
@@ -25,6 +25,29 @@ const ItineraryDisplay = ({
   onUpdateItinerary 
 }: ItineraryDisplayProps) => {
   const { toast } = useToast();
+
+  const addOrUpdateActivity = (item: ItineraryItem) => {
+    const existingIndex = itinerary.findIndex(i => i.id === item.id);
+    
+    if (existingIndex >= 0) {
+      // Update existing item
+      const newItinerary = [...itinerary];
+      newItinerary[existingIndex] = item;
+      onUpdateItinerary(newItinerary);
+      toast({
+        title: "Activity updated",
+        description: `"${item.activity}" has been updated`,
+      });
+    } else {
+      // Add new item
+      const newItinerary = [...itinerary, item];
+      onUpdateItinerary(newItinerary);
+      toast({
+        title: "Activity added",
+        description: `"${item.activity}" has been added to Day ${item.day}`,
+      });
+    }
+  };
 
   const onDragEnd = (result: DropResult) => {
     const { destination, source, draggableId } = result;
@@ -181,9 +204,16 @@ const ItineraryDisplay = ({
                         item={item}
                         index={index}
                         currency={tripData.currency}
+                        onUpdateItem={addOrUpdateActivity}
                       />
                     ))}
                     {provided.placeholder}
+                    
+                    <AddEditActivityDialog
+                      day={column.day}
+                      currency={tripData.currency}
+                      onSave={addOrUpdateActivity}
+                    />
                   </div>
                 )}
               </Droppable>
