@@ -3,45 +3,64 @@ import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Clock, MapPin, DollarSign, Plane, Bed, Utensils, Car } from "lucide-react";
+import { ArrowLeft, DollarSign } from "lucide-react";
+import { DragDropContext, Droppable, DropResult } from "@hello-pangea/dnd";
 import { TripData, ItineraryItem } from "./ItineraryPlanner";
+import ItineraryItemCard from "./ItineraryItemCard";
+import { useToast } from "@/hooks/use-toast";
 
 interface ItineraryDisplayProps {
   tripData: TripData;
   itinerary: ItineraryItem[];
   isGenerating: boolean;
   onReset: () => void;
+  onUpdateItinerary: (newItinerary: ItineraryItem[]) => void;
 }
 
-const ItineraryDisplay = ({ tripData, itinerary, isGenerating, onReset }: ItineraryDisplayProps) => {
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case "flight":
-        return <Plane className="h-4 w-4" />;
-      case "accommodation":
-        return <Bed className="h-4 w-4" />;
-      case "meal":
-        return <Utensils className="h-4 w-4" />;
-      case "transport":
-        return <Car className="h-4 w-4" />;
-      default:
-        return <MapPin className="h-4 w-4" />;
-    }
-  };
+const ItineraryDisplay = ({ 
+  tripData, 
+  itinerary, 
+  isGenerating, 
+  onReset,
+  onUpdateItinerary 
+}: ItineraryDisplayProps) => {
+  const { toast } = useToast();
 
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case "flight":
-        return "bg-blue-100 text-blue-800 border-blue-200";
-      case "accommodation":
-        return "bg-purple-100 text-purple-800 border-purple-200";
-      case "meal":
-        return "bg-orange-100 text-orange-800 border-orange-200";
-      case "transport":
-        return "bg-green-100 text-green-800 border-green-200";
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
+  const onDragEnd = (result: DropResult) => {
+    const { destination, source, draggableId } = result;
+
+    if (!destination) {
+      return;
     }
+
+    if (
+      destination.droppableId === source.droppableId &&
+      destination.index === source.index
+    ) {
+      return;
+    }
+
+    const sourceDay = parseInt(source.droppableId);
+    const destinationDay = parseInt(destination.droppableId);
+    
+    const item = itinerary.find(item => item.id === draggableId);
+    if (!item) {
+      return;
+    }
+
+    // Update the item's day
+    const updatedItem = { ...item, day: destinationDay };
+    
+    // Create new itinerary with updated item
+    const newItinerary = itinerary.map(i => 
+      i.id === draggableId ? updatedItem : i
+    );
+
+    onUpdateItinerary(newItinerary);
+    toast({
+      title: "Activity moved",
+      description: `"${item.activity}" moved to Day ${destinationDay}`,
+    });
   };
 
   const totalCost = itinerary.reduce((sum, item) => sum + item.estimatedCost, 0);
@@ -54,6 +73,15 @@ const ItineraryDisplay = ({ tripData, itinerary, isGenerating, onReset }: Itiner
     acc[item.day].push(item);
     return acc;
   }, {} as Record<number, ItineraryItem[]>);
+
+  // Create columns for all days in the trip
+  const dayColumns = Array.from({ length: tripData.days }, (_, index) => {
+    const dayNumber = index + 1;
+    return {
+      day: dayNumber,
+      items: groupedByDay[dayNumber] || []
+    };
+  });
 
   if (isGenerating) {
     return (
@@ -125,52 +153,44 @@ const ItineraryDisplay = ({ tripData, itinerary, isGenerating, onReset }: Itiner
         </Card>
       </div>
 
-      <div className="space-y-6">
-        {Object.entries(groupedByDay).map(([day, dayItems]) => (
-          <Card key={day}>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <span>Day {day}</span>
-                <Badge variant="outline">{dayItems.length} activities</Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {dayItems.map((item) => (
-                  <div key={item.id} className="flex items-start space-x-4 p-4 border rounded-lg">
-                    <div className="flex items-center space-x-2 min-w-20">
-                      <Clock className="h-4 w-4 text-gray-500" />
-                      <span className="text-sm font-medium">{item.time}</span>
-                    </div>
-                    
-                    <div className="flex-1 space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <Badge variant="outline" className={getTypeColor(item.type)}>
-                          {getTypeIcon(item.type)}
-                          <span className="ml-1 capitalize">{item.type}</span>
-                        </Badge>
-                      </div>
-                      
-                      <h4 className="font-medium">{item.activity}</h4>
-                      
-                      <div className="flex items-center space-x-1 text-sm text-gray-600">
-                        <MapPin className="h-3 w-3" />
-                        <span>{item.location}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="text-right">
-                      <span className="text-sm font-medium">
-                        {item.estimatedCost > 0 ? `${tripData.currency} ${item.estimatedCost}` : 'Free'}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+      <DragDropContext onDragEnd={onDragEnd}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {dayColumns.map((column) => (
+            <div key={column.day} className="bg-white rounded-lg shadow-md border-t-4 border-t-blue-400 bg-blue-50 min-h-[400px] flex flex-col">
+              <div className="p-4 border-b border-gray-100">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-gray-800 text-lg">Day {column.day}</h3>
+                  <Badge variant="outline" className="bg-gray-200 text-gray-700">
+                    {column.items.length}
+                  </Badge>
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+
+              <Droppable droppableId={column.day.toString()}>
+                {(provided, snapshot) => (
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.droppableProps}
+                    className={`flex-1 p-4 space-y-3 transition-colors ${
+                      snapshot.isDraggingOver ? "bg-gray-50" : ""
+                    }`}
+                  >
+                    {column.items.map((item, index) => (
+                      <ItineraryItemCard
+                        key={item.id}
+                        item={item}
+                        index={index}
+                        currency={tripData.currency}
+                      />
+                    ))}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </div>
+          ))}
+        </div>
+      </DragDropContext>
     </div>
   );
 };

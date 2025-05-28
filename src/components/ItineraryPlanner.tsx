@@ -89,6 +89,24 @@ const ItineraryPlanner = () => {
           location: "Sumida, Tokyo",
           estimatedCost: 30,
           type: "activity"
+        },
+        {
+          id: "7",
+          day: 3,
+          time: "09:00",
+          activity: "Travel to Osaka",
+          location: "Osaka",
+          estimatedCost: 80,
+          type: "transport"
+        },
+        {
+          id: "8",
+          day: 3,
+          time: "13:00",
+          activity: "Osaka Castle Visit",
+          location: "Osaka",
+          estimatedCost: 15,
+          type: "activity"
         }
       ];
       
@@ -97,13 +115,17 @@ const ItineraryPlanner = () => {
     }, 2000);
   };
 
+  const updateItinerary = (newItinerary: ItineraryItem[]) => {
+    setItinerary(newItinerary);
+  };
+
   const resetPlanner = () => {
     setTripData(null);
     setItinerary([]);
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto">
+    <div className="w-full max-w-7xl mx-auto">
       {!tripData ? (
         <Card>
           <CardHeader>
@@ -119,6 +141,7 @@ const ItineraryPlanner = () => {
           itinerary={itinerary}
           isGenerating={isGenerating}
           onReset={resetPlanner}
+          onUpdateItinerary={updateItinerary}
         />
       )}
     </div>
