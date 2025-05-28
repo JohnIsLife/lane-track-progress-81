@@ -1,7 +1,9 @@
+
 import { Draggable } from "@hello-pangea/dnd";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Clock, MapPin, Plane, Bed, Utensils, Car } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Clock, MapPin, Plane, Bed, Utensils, Car, Trash2 } from "lucide-react";
 import { ItineraryItem } from "./ItineraryPlanner";
 import AddEditActivityDialog from "./AddEditActivityDialog";
 
@@ -10,9 +12,10 @@ interface ItineraryItemCardProps {
   index: number;
   currency: string;
   onUpdateItem: (item: ItineraryItem) => void;
+  onRemoveItem: (itemId: string) => void;
 }
 
-const ItineraryItemCard = ({ item, index, currency, onUpdateItem }: ItineraryItemCardProps) => {
+const ItineraryItemCard = ({ item, index, currency, onUpdateItem, onRemoveItem }: ItineraryItemCardProps) => {
   const getTypeIcon = (type: string) => {
     switch (type) {
       case "flight":
@@ -31,15 +34,15 @@ const ItineraryItemCard = ({ item, index, currency, onUpdateItem }: ItineraryIte
   const getTypeColor = (type: string) => {
     switch (type) {
       case "flight":
-        return "bg-blue-100 text-blue-800 border-blue-200";
+        return "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900 dark:text-blue-300 dark:border-blue-800";
       case "accommodation":
-        return "bg-purple-100 text-purple-800 border-purple-200";
+        return "bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900 dark:text-purple-300 dark:border-purple-800";
       case "meal":
-        return "bg-orange-100 text-orange-800 border-orange-200";
+        return "bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-900 dark:text-orange-300 dark:border-orange-800";
       case "transport":
-        return "bg-green-100 text-green-800 border-green-200";
+        return "bg-green-100 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-300 dark:border-green-800";
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
+        return "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700";
     }
   };
 
@@ -56,22 +59,35 @@ const ItineraryItemCard = ({ item, index, currency, onUpdateItem }: ItineraryIte
         >
           <CardContent className="p-4">
             <div className="space-y-3">
-              <div className="flex items-center space-x-2">
-                <Badge variant="outline" className={getTypeColor(item.type)}>
-                  {getTypeIcon(item.type)}
-                  <span className="ml-1 capitalize">{item.type}</span>
-                </Badge>
-                <div className="flex items-center space-x-1 text-sm text-gray-600 ml-auto">
-                  <Clock className="h-3 w-3" />
-                  <span>{item.time}</span>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Badge variant="outline" className={getTypeColor(item.type)}>
+                    {getTypeIcon(item.type)}
+                    <span className="ml-1 capitalize">{item.type}</span>
+                  </Badge>
+                  <div className="flex items-center space-x-1 text-sm text-gray-600 dark:text-gray-400">
+                    <Clock className="h-3 w-3" />
+                    <span>{item.time}</span>
+                  </div>
                 </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRemoveItem(item.id);
+                  }}
+                  className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
               </div>
               
-              <h4 className="font-medium text-gray-900 text-sm leading-tight">
+              <h4 className="font-medium text-gray-900 dark:text-gray-100 text-sm leading-tight">
                 {item.activity}
               </h4>
               
-              <div className="flex items-center space-x-1 text-sm text-gray-600">
+              <div className="flex items-center space-x-1 text-sm text-gray-600 dark:text-gray-400">
                 <MapPin className="h-3 w-3" />
                 <span className="truncate">{item.location}</span>
               </div>
