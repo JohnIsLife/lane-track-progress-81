@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, DollarSign, Download, Trash2, Plane, Bed, Utensils, Car, MapPin } from "lucide-react";
 import { DragDropContext, Droppable, DropResult } from "@hello-pangea/dnd";
 import { TripData, ItineraryItem } from "./ItineraryPlanner";
@@ -277,7 +278,6 @@ const ItineraryDisplay = ({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Day</TableHead>
                   <TableHead>Time</TableHead>
                   <TableHead>Activity</TableHead>
                   <TableHead>Location</TableHead>
@@ -287,32 +287,63 @@ const ItineraryDisplay = ({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {itinerary.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="font-medium">Day {item.day}</TableCell>
-                    <TableCell>{item.time}</TableCell>
-                    <TableCell>{item.activity}</TableCell>
-                    <TableCell>{item.location}</TableCell>
-                    <TableCell>
-                      {item.estimatedCost > 0 ? `${tripData.currency} ${item.estimatedCost}` : 'Free'}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={getTypeColor(item.type)}>
-                        {getTypeIcon(item.type)}
-                        <span className="ml-1 capitalize">{item.type}</span>
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeActivity(item.id)}
-                        className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
+                {dayColumns.map((dayColumn) => (
+                  <>
+                    {/* Day Header */}
+                    <TableRow key={`day-${dayColumn.day}`} className="bg-blue-50 dark:bg-blue-900/20 border-b-2 border-blue-200 dark:border-blue-800">
+                      <TableCell colSpan={6} className="py-4">
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-lg font-bold text-blue-900 dark:text-blue-100">
+                            Day {dayColumn.day}
+                          </h3>
+                          <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-800 dark:text-blue-200">
+                            {dayColumn.items.length} activities
+                          </Badge>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                    
+                    {/* Day Activities */}
+                    {dayColumn.items.length === 0 ? (
+                      <TableRow key={`day-${dayColumn.day}-empty`}>
+                        <TableCell colSpan={6} className="py-6 text-center text-gray-500 dark:text-gray-400 italic">
+                          No activities planned for this day
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      dayColumn.items
+                        .sort((a, b) => a.time.localeCompare(b.time))
+                        .map((item, index) => (
+                          <TableRow 
+                            key={item.id} 
+                            className={`${index === dayColumn.items.length - 1 ? 'border-b-4 border-gray-200 dark:border-gray-700' : ''}`}
+                          >
+                            <TableCell className="font-medium">{item.time}</TableCell>
+                            <TableCell>{item.activity}</TableCell>
+                            <TableCell>{item.location}</TableCell>
+                            <TableCell>
+                              {item.estimatedCost > 0 ? `${tripData.currency} ${item.estimatedCost}` : 'Free'}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className={getTypeColor(item.type)}>
+                                {getTypeIcon(item.type)}
+                                <span className="ml-1 capitalize">{item.type}</span>
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeActivity(item.id)}
+                                className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                    )}
+                  </>
                 ))}
               </TableBody>
             </Table>
